@@ -1,0 +1,10 @@
+/* Clearfix */
+.osfa-form-row:before, .osfa-form-row:after { content: " "; display: table; }
+.osfa-form-row:after { clear: both; }
+.osfa-form-row { *zoom: 1; } /* IE 6/7 only. Include this rule to trigger hasLayout and contain floats. */
+
+.osfa-form-row label,
+.osfa-form-row input, 
+.osfa-form-row textarea,
+.osfa-assist { float: left; vertical-align: top; }
+.osfa-assist { font-style: italic; }
