@@ -412,26 +412,16 @@ function entree_template_part($template_name, $echo = true) {
 }
 
 /**
- * Returns (or echoes) a menu item's price. 
+ * Returns a menu item's prices. 
  * 
  * @param int $item_id
- * @param bool $echo
- * @return void|string
+ * @return array
  */
-if ( !function_exists('entree_item_price') ) {
-	function entree_item_price($item_id = "", $echo = true) {
-		if (!isset($item_id))
-			$item_id = get_the_ID();
+function entree_get_item_price($item_id = "") {
+	if (empty($item_id))
+		$item_id = get_the_ID();
 
-		$price = get_post_meta($item_id, 'entree-price', true);
-
-		// Override this with the entree_item_price filter
-		$price = apply_filters('entree_item_price', '$'.number_format($price, 2), $price);
-
-		if ( $echo === false )
-			return $price;
-
-		echo $price;
-	}
+	$price = get_post_meta($item_id, 'entree-price', true);
+	return explode("\n", $price);
 }
 
