@@ -238,7 +238,8 @@ class OSFA_Entree {
     	extract( shortcode_atts( array(
 			'menu' => '', 
 			'count' => -1, 
-            'layout' => 'list'
+            'layout' => 'list', 
+            'show_thumbnails' => true
 		), $atts ) );
 
     	// Get menu items
