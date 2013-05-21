@@ -42,9 +42,6 @@ class OSFA_Entree {
     	// Set up multi-lingualism
     	load_plugin_textdomain( 'osfa_entree', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
-    	// Set up class variables
-    	$this->template_path = apply_filters( 'entree_template_path', 'entree' );
-
     	// Set up action hooks and filters	
     	add_action( 'init', array(&$this, 'init') );
     	add_action( 'add_meta_boxes', array(&$this, 'add_meta_boxes'));
@@ -76,6 +73,9 @@ class OSFA_Entree {
      * @return void
      */
     public function init() {
+
+        // Set up class variables
+        $this->template_path = apply_filters( 'entree_template_path', 'entree' );
 
     	// Create the menu_item post type. 
     	// This can be modified by hooking into the entree_menu_item_post_type filter.
@@ -237,7 +237,8 @@ class OSFA_Entree {
     public function shortcode($atts) {
     	extract( shortcode_atts( array(
 			'menu' => '', 
-			'count' => -1
+			'count' => -1, 
+            'layout' => 'list'
 		), $atts ) );
 
     	// Get menu items
@@ -248,9 +249,9 @@ class OSFA_Entree {
 
     	if ( $items->found_posts ) {
 
-    		do_action('entree_before_menu_items', $items); ?>
+    		do_action('entree_before_menu_items', $items, $layout); ?>
 
-    		<ul class="entree-menu">
+    		<ul class="entree-menu entree-layout-<?php echo $layout ?>">
 
     		<?php 
     		// Increment
@@ -260,18 +261,18 @@ class OSFA_Entree {
 
     			$items->the_post();
 
-    			do_action('entree_before_menu_item');
+    			do_action('entree_before_menu_item', $items, $layout);
 
-    			include( entree_locate_template('menu_item.php') );
+    			include( entree_locate_template('menu_item', $layout ) );
 
-    			do_action('entree_after_menu_item');
+    			do_action('entree_after_menu_item', $items, $layout);
 
     			$i++;
     		} ?>
 
     		</ul>
 
-    		<?php do_action('entree_after_menu_items', $items);
+    		<?php do_action('entree_after_menu_items', $items, $layout);
 
     		wp_reset_query();
     	}
@@ -346,7 +347,7 @@ class OSFA_Entree {
      */
     public function the_content_filter($content) {
     	if ( is_single() && get_post_type() == 'entree_menu_item' ) {    		
-    		$content .= entree_template_part('price.php', false);
+    		$content .= entree_template_part('price', false);
     	}
 
     	return $content;
@@ -368,18 +369,23 @@ $entree = OSFA_Entree::get_instance();
  * @param $template_path
  * @return string
  */
-function entree_locate_template($template_name) {	
+function entree_locate_template($slug, $name = "") {	
 	$entree = OSFA_Entree::get_instance();
 
+    // Create the array of locations
+    $locations = array( trailingslashit( $entree->get_template_path() ) . $slug . '.php', $slug );
+    if ( strlen( $name ))
+        array_unshift( $locations, trailingslashit( $entree->get_template_path() ) . $slug . '-' . $name . '.php' );
+
 	// Look for the template in the theme directory
-	$template = locate_template( array(
-		trailingslashit( $entree->get_template_path() ) . $template_name,
-		$template_name
-	) );
+	$template = locate_template( $locations );
 
 	// If the theme doesn't have the template, use our default template
-	if ( !$template )
-		$template = $entree->get_plugin_path() . '/templates/' . $template_name;
+	if ( !$template ) {
+        $template = file_exists( $entree->get_plugin_path() . '/templates/' . $slug . '-' . $name  . '.php') 
+            ? $entree->get_plugin_path() . '/templates/' . $slug . '-' . $name . '.php'
+            : $entree->get_plugin_path() . '/templates/' . $slug . '.php';
+    }
 
 	return $template;
 }
